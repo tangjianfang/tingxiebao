@@ -182,6 +182,7 @@ function migrateSettings(saved = {}) {
       wordIntervalSeconds: DEFAULT_SETTINGS.wordIntervalSeconds,
       speed: DEFAULT_SETTINGS.speed,
       readSentence: DEFAULT_SETTINGS.readSentence,
+      readCompound: DEFAULT_SETTINGS.readCompound,
       waitPerChar: DEFAULT_SETTINGS.waitPerChar,
       scoringMode: DEFAULT_SETTINGS.scoringMode,
       showWordOnStage: DEFAULT_SETTINGS.showWordOnStage,
@@ -815,9 +816,9 @@ function syncCustomWordsFromQuickInput() {
   }
   saveCustomWords();
 
-  if (words.length) {
+  if (App.customWords.length) {
     App.settings.wordSource = 'custom';
-    App.settings.wordCount = words.length;
+    App.settings.wordCount = App.customWords.length;
     setVal('word-source', 'custom');
     setVal('count-input', App.settings.wordCount);
   } else if (App.settings.wordSource === 'custom') {
