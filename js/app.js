@@ -28,6 +28,8 @@ const DEFAULT_SETTINGS = {
   voice: '',
 };
 
+const SHARE_URL = 'https://tangjianfang.github.io/tingxiebao/';
+
 const App = {
   // 核心模块
   tts:       null,
@@ -321,6 +323,13 @@ function bindEvents() {
   on('btn-resume', 'click', handleResume);
   on('btn-stop', 'click', handleStop);
   on('btn-test-tts', 'click', () => App.tts.test());
+  on('btn-share-qr', 'click', openQrModal);
+  on('btn-close-qr', 'click', closeQrModal);
+  on('qr-modal-backdrop', 'click', closeQrModal);
+  on('btn-copy-qr-link', 'click', copyShareLink);
+  on('btn-open-qr-link', 'click', () => {
+    window.open(getShareUrl(), '_blank', 'noopener,noreferrer');
+  });
 
   // ── 词库导航 ──
   on('btn-wordbank', 'click', () => toggleSection('wordbank'));
@@ -822,6 +831,10 @@ function handleGlobalShortcut(e) {
 
   if (isEditable) return;
 
+  if (e.key === 'Escape') {
+    closeQrModal();
+  }
+
   if (e.code === 'Space' || e.key === ' ') {
     if (App.state === 'running') {
       e.preventDefault();
@@ -830,6 +843,56 @@ function handleGlobalShortcut(e) {
       e.preventDefault();
       handleResume();
     }
+  }
+}
+
+function getShareUrl() {
+  return SHARE_URL;
+}
+
+function buildQrImageUrl(text) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=12&data=${encodeURIComponent(text)}`;
+}
+
+function openQrModal() {
+  const modal = document.getElementById('qr-modal');
+  const image = document.getElementById('qr-code-image');
+  const link = document.getElementById('qr-link');
+  const shareUrl = getShareUrl();
+
+  if (!modal || !image || !link) return;
+
+  image.src = buildQrImageUrl(shareUrl);
+  link.href = shareUrl;
+  link.textContent = shareUrl;
+  modal.style.display = 'flex';
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeQrModal() {
+  const modal = document.getElementById('qr-modal');
+  if (!modal) return;
+  modal.style.display = 'none';
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+async function copyShareLink() {
+  const shareUrl = getShareUrl();
+
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(shareUrl);
+    } else {
+      const temp = document.createElement('input');
+      temp.value = shareUrl;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      temp.remove();
+    }
+    showToast('链接已复制，可直接发到手机打开', 'success');
+  } catch (_) {
+    showToast('复制失败，请手动复制下方链接', 'warning');
   }
 }
 

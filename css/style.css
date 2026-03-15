@@ -214,6 +214,12 @@ button, input, select, textarea {
   color: #fff;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .btn-lg {
   min-height: 58px;
   padding: 16px 28px;
@@ -959,6 +965,104 @@ button, input, select, textarea {
 .toast.warning { background: var(--warning); color: #333; }
 .toast.error   { background: var(--danger); }
 
+/* ── 二维码弹层 ── */
+.qr-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.qr-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, .56);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.qr-modal-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 420px);
+  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 28px;
+  box-shadow: var(--shadow-lg);
+  padding: 24px 22px 20px;
+  text-align: center;
+}
+
+.qr-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.qr-modal-title {
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: var(--gray-800);
+  margin-bottom: 8px;
+}
+
+.qr-modal-subtitle {
+  font-size: .9rem;
+  color: var(--gray-500);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.qr-code-frame {
+  width: 244px;
+  height: 244px;
+  margin: 0 auto 14px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 24px;
+  border: 1px solid var(--gray-200);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+}
+
+.qr-code-frame img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 16px;
+}
+
+.qr-link {
+  display: block;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 14px;
+  color: var(--primary-dark);
+  font-size: .86rem;
+  line-height: 1.6;
+  word-break: break-all;
+  text-decoration: none;
+}
+
+.qr-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 @keyframes toastIn {
   from { transform: translateX(100%) scale(.9); opacity: 0; }
   to   { transform: translateX(0) scale(1); opacity: 1; }
@@ -1108,6 +1212,9 @@ button, a, select, input, label {
   /* 头部按钮：小屏隐藏文字，只留图标 */
   .header-actions { gap: 4px; }
   .header-actions .btn { padding: 7px 10px; font-size: 0.78rem; }
+
+  .qr-modal-dialog { padding: 22px 16px 16px; border-radius: 22px; }
+  .qr-code-frame { width: min(72vw, 230px); height: min(72vw, 230px); }
 
   /* 卡片 */
   .card-body   { padding: 14px 14px 18px; }
@@ -1350,4 +1457,6 @@ input, select, textarea {
   .console-stage { background: linear-gradient(135deg, #020617 0%, #0f2240 100%); }
   .config-item select,
   .config-item input { background: #263244; color: var(--gray-100); }
+  .qr-modal-dialog { background: rgba(30,41,59,.96); border-color: #334155; }
+  .qr-link, .qr-modal-close { background: #263244; border-color: #334155; color: var(--gray-700); }
 }

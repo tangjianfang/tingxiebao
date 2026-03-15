@@ -30,6 +30,9 @@
     </a>
 
     <div class="header-actions">
+      <button class="btn btn-ghost btn-sm" id="btn-share-qr" title="扫码打开">
+        <span role="img" aria-label="二维码">📱</span><span class="btn-label"> 扫码</span>
+      </button>
       <button class="btn btn-ghost btn-sm" id="btn-wordbank" title="管理词库">
         <span role="img" aria-label="词库">📚</span><span class="btn-label"> 词库</span>
       </button>
@@ -375,6 +378,26 @@
 </div>
 <!-- Toast 容器 -->
 <div class="toast-container" id="toast-container"></div>
+
+<!-- 二维码弹层 -->
+<div class="qr-modal" id="qr-modal" style="display:none" aria-hidden="true">
+  <div class="qr-modal-backdrop" id="qr-modal-backdrop"></div>
+  <div class="qr-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="qr-modal-title">
+    <button class="qr-modal-close" id="btn-close-qr" aria-label="关闭二维码弹窗">✕</button>
+    <div class="qr-modal-title" id="qr-modal-title">扫码在手机 / 平板打开</div>
+    <div class="qr-modal-subtitle">使用微信、浏览器或系统相机扫描即可访问听写宝。</div>
+    <div class="qr-code-frame">
+      <img id="qr-code-image" alt="听写宝访问二维码" loading="lazy">
+    </div>
+    <a class="qr-link" id="qr-link" href="https://tangjianfang.github.io/tingxiebao/" target="_blank" rel="noreferrer noopener">
+      https://tangjianfang.github.io/tingxiebao/
+    </a>
+    <div class="qr-modal-actions">
+      <button class="btn btn-primary btn-sm" id="btn-copy-qr-link">复制链接</button>
+      <button class="btn btn-ghost btn-sm" id="btn-open-qr-link">新窗口打开</button>
+    </div>
+  </div>
+</div>
 
 
 <!-- ════════════════════════════════════════════════════
