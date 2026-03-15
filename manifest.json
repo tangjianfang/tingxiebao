@@ -2,7 +2,7 @@
   "name": "听写宝 · 小学生专业听写系统",
   "short_name": "听写宝",
   "description": "专业教育级听写系统 — AI出题、教师节奏、自动评分",
-  "start_url": "/tingxiebao/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#e8effe",
   "theme_color": "#4f7ef8",
