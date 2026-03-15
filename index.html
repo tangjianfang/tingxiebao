@@ -389,6 +389,26 @@
   </div>
 </div>
 
+<!-- 批量导入弹层 -->
+<div class="qr-modal" id="import-modal" style="display:none" aria-hidden="true">
+  <div class="qr-modal-backdrop" id="import-modal-backdrop"></div>
+  <div class="qr-modal-dialog import-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="import-modal-title">
+    <button class="qr-modal-close" id="btn-close-import" aria-label="关闭批量导入">✕</button>
+    <div class="qr-modal-title" id="import-modal-title">📂 批量导入词语</div>
+    <div class="qr-modal-subtitle">每行一个词，或用逗号、空格分隔，支持直接粘贴。</div>
+    <textarea
+      id="import-textarea"
+      class="import-textarea"
+      rows="8"
+      placeholder="例如：&#10;春天&#10;夏天&#10;秋天&#10;&#10;或：春天,夏天,秋天,冬天"
+    ></textarea>
+    <div class="qr-modal-actions" style="margin-top:16px">
+      <button class="btn btn-primary" id="btn-confirm-import">✅ 确认导入</button>
+      <button class="btn btn-ghost" id="btn-cancel-import">取消</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- ════════════════════════════════════════════════════
      脚本加载（顺序重要）

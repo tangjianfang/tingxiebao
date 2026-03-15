@@ -341,6 +341,12 @@ function bindEvents() {
     window.open(getShareUrl(), '_blank', 'noopener,noreferrer');
   });
 
+  // ── 批量导入弹窗 ──
+  on('btn-close-import', 'click', closeImportModal);
+  on('import-modal-backdrop', 'click', closeImportModal);
+  on('btn-confirm-import', 'click', confirmImport);
+  on('btn-cancel-import', 'click', closeImportModal);
+
   // ── 侧边栏标签切换 ──
   document.querySelectorAll('.sidebar-tab').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -464,20 +470,46 @@ function addCustomWord() {
 }
 
 function importWordList() {
-  const text = prompt('请粘贴词语列表（每行一个词，或用逗号分隔）：');
+  const modal = document.getElementById('import-modal');
+  const textarea = document.getElementById('import-textarea');
+  if (modal && textarea) {
+    textarea.value = '';
+    modal.style.display = 'flex';
+    modal.removeAttribute('aria-hidden');
+    setTimeout(() => textarea.focus(), 100);
+  }
+}
+
+function confirmImport() {
+  const textarea = document.getElementById('import-textarea');
+  const text = (textarea?.value || '').trim();
+  closeImportModal();
   if (!text) return;
-  const words = text.split(/[\n，,\s]+/).filter(w => w.trim());
+  const words = text.split(/[\n\r，,\s]+/).map(w => w.trim()).filter(Boolean);
+  let added = 0;
   words.forEach(w => {
-    const word = w.trim();
-    if (word && !App.customWords.find(c => c.word === word)) {
-      App.customWords.push(buildCustomWord(word));
+    if (!App.customWords.find(c => c.word === w)) {
+      App.customWords.push(buildCustomWord(w));
+      added++;
     }
   });
   saveCustomWords();
   syncQuickWordInput();
   updateWordTagList();
   updateSimplePresetSummary();
-  showToast(`导入 ${words.length} 个词语`, 'success');
+  const skipped = words.length - added;
+  showToast(
+    `成功导入 ${added} 个词语${skipped > 0 ? `，${skipped} 个重复已跳过` : ''}`,
+    'success'
+  );
+}
+
+function closeImportModal() {
+  const modal = document.getElementById('import-modal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+  }
 }
 
 function useCustomWords() {
@@ -858,15 +890,17 @@ function setVal(id, value) {
 }
 
 function handleGlobalShortcut(e) {
+  if (e.key === 'Escape') {
+    closeQrModal();
+    closeImportModal();
+    return;
+  }
+
   const target = e.target;
   const tagName = target?.tagName;
   const isEditable = target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(tagName);
 
   if (isEditable) return;
-
-  if (e.key === 'Escape') {
-    closeQrModal();
-  }
 
   if (e.code === 'Space' || e.key === ' ') {
     if (App.state === 'running') {
