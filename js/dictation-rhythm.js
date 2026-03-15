@@ -32,6 +32,7 @@ class DictationRhythm {
     // 节奏配置
     this.config = {
       readSentence:    true,   // 是否朗读例句
+      readCompound:    true,   // 是否组词朗读（字→组词交替）
       intraRepeatCount: 3,     // 每个词总共朗读几遍
       intraRepeatGap:   3000,  // 同一个词两次朗读之间的间隔（ms）
       waitPerChar:     800,    // 每个字的等待时间（ms）
@@ -172,8 +173,17 @@ class DictationRhythm {
         // 2b. 初读词语
         this.onPhaseChange?.('word');
         await this.tts.speakWord(item.word);
-        await this.tts.wait(500);
+        await this.tts.wait(300);
         await this._checkPause();
+
+        // 2b2. 组词朗读（可选）
+        if (this.config.readCompound && item.compound) {
+          this.onPhaseChange?.('compound');
+          await this.tts.wait(400);
+          await this.tts.speakWord(item.compound);
+          await this.tts.wait(300);
+          await this._checkPause();
+        }
 
         // 2c. 例句（可选）
         if (this.config.readSentence && item.sentence) {
@@ -194,8 +204,17 @@ class DictationRhythm {
           await this.tts.wait(intraGap);
           await this._checkPause();
           await this.tts.speakRepeat(item.word);
-          await this.tts.wait(300);
+          await this.tts.wait(200);
           await this._checkPause();
+
+          // 组词朗读（可选）
+          if (this.config.readCompound && item.compound) {
+            this.onPhaseChange?.('compound');
+            await this.tts.wait(400);
+            await this.tts.speakWord(item.compound);
+            await this.tts.wait(300);
+            await this._checkPause();
+          }
         }
 
         // 2e. 等待书写
@@ -295,6 +314,7 @@ const PHASE_INFO = {
   number:   { label: '报题号', icon: '🔢', color: '#64748b' },
   word:     { label: '朗读词语', icon: '🔊', color: '#f5a623' },
   sentence: { label: '朗读例句', icon: '📖', color: '#60a5fa' },
+  compound: { label: '组词朗读', icon: '🔤', color: '#7c3aed' },
   repeat:   { label: '复读词语', icon: '🔁', color: '#ff7043' },
   wait:     { label: '书写等待', icon: '✍️', color: '#26a65b' },
   gap:      { label: '间隔', icon: '⏱️', color: '#94a3b8' },

@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS = {
   wordIntervalSeconds: 20,
   speed: 0.75,
   readSentence: false,
+  readCompound: true,
   waitPerChar: 800,
   scoringMode: 'normal',
   showWordOnStage: false,
@@ -224,6 +225,8 @@ function applySettings() {
   if (sentenceCheck) sentenceCheck.checked = App.settings.readSentence;
   const showWordCheck = document.getElementById('show-word');
   if (showWordCheck) showWordCheck.checked = App.settings.showWordOnStage;
+  const compoundCheck = document.getElementById('read-compound');
+  if (compoundCheck) compoundCheck.checked = App.settings.readCompound !== false;
 
   document.querySelector('.speed-value').textContent = App.settings.speed;
   App.tts.setRate(App.settings.speed);
@@ -233,6 +236,7 @@ function applySettings() {
   // 应用到节奏引擎
   App.rhythm.setConfig({
     readSentence:    App.settings.readSentence,
+    readCompound:    App.settings.readCompound !== false,
     intraRepeatCount: App.settings.intraRepeatCount,
     intraRepeatGap:   App.settings.intraRepeatGapSeconds * 1000,
     waitPerChar:     App.settings.waitPerChar,
@@ -318,6 +322,12 @@ function bindEvents() {
     App.rhythm.setConfig({ showWordOnStage: e.target.checked });
     saveSettings();
     updateSimplePresetSummary();
+  });
+
+  on('read-compound', 'change', e => {
+    App.settings.readCompound = e.target.checked;
+    App.rhythm.setConfig({ readCompound: e.target.checked });
+    saveSettings();
   });
 
   document.querySelectorAll('[data-theme-value]').forEach(btn => {
@@ -456,7 +466,8 @@ function addCustomWord() {
 
   words.forEach(w => {
     const word = w.trim();
-    if (word && !App.customWords.find(c => c.word === word)) {
+    const wordPart = word.split('|')[0].trim();
+    if (wordPart && !App.customWords.find(c => c.word === wordPart)) {
       App.customWords.push(buildCustomWord(word));
     }
   });
@@ -774,16 +785,34 @@ function getWordsFromText(rawText) {
 function syncQuickWordInput() {
   const el = document.getElementById('quick-word-input');
   if (!el) return;
-  el.value = App.customWords.map(item => item.word).join(' ');
+  el.value = App.customWords.map(item =>
+    item.compound ? `${item.word}|${item.compound}` : item.word
+  ).join(' ');
+}
+
+function parseWordToken(token) {
+  const parts = String(token || '').split('|');
+  return { word: parts[0].trim(), compound: parts[1]?.trim() || '' };
 }
 
 function syncCustomWordsFromQuickInput() {
   const el = document.getElementById('quick-word-input');
   if (!el) return;
 
-  const words = getWordsFromText(el.value);
+  const tokens = getWordsFromText(el.value);
   const previousMap = new Map(App.customWords.map(item => [item.word, item]));
-  App.customWords = words.map(word => previousMap.get(word) || buildCustomWord(word));
+  const seen = new Set();
+  App.customWords = [];
+  for (const token of tokens) {
+    const { word } = parseWordToken(token);
+    if (word && !seen.has(word)) {
+      seen.add(word);
+      const existing = previousMap.get(word);
+      App.customWords.push(existing
+        ? { ...existing, compound: parseWordToken(token).compound }
+        : buildCustomWord(token));
+    }
+  }
   saveCustomWords();
 
   if (words.length) {
