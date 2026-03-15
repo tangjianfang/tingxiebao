@@ -13,6 +13,7 @@ const STORAGE_KEYS = {
 
 const DEFAULT_SETTINGS = {
   curriculum: 'shenzhen-primary-grade1-semester2',
+  theme: 'day',
   grade: 'grade1',
   semester: '2',
   wordSource: 'grade',
@@ -170,6 +171,7 @@ function migrateSettings(saved = {}) {
   if (!next.curriculum) {
     Object.assign(next, {
       curriculum: DEFAULT_SETTINGS.curriculum,
+      theme: DEFAULT_SETTINGS.theme,
       grade: DEFAULT_SETTINGS.grade,
       semester: DEFAULT_SETTINGS.semester,
       wordSource: DEFAULT_SETTINGS.wordSource,
@@ -226,6 +228,7 @@ function applySettings() {
   document.querySelector('.speed-value').textContent = App.settings.speed;
   App.tts.setRate(App.settings.speed);
   App.tts.setVoice(App.settings.voice || '');
+  applyTheme(App.settings.theme || 'day');
 
   // 应用到节奏引擎
   App.rhythm.setConfig({
@@ -315,6 +318,13 @@ function bindEvents() {
     App.rhythm.setConfig({ showWordOnStage: e.target.checked });
     saveSettings();
     updateSimplePresetSummary();
+  });
+
+  document.querySelectorAll('[data-theme-value]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyTheme(btn.dataset.themeValue || 'day');
+      saveSettings();
+    });
   });
 
   // ── 主控按钮 ──
@@ -844,6 +854,32 @@ function handleGlobalShortcut(e) {
       handleResume();
     }
   }
+}
+
+function applyTheme(theme = 'day') {
+  const nextTheme = theme === 'night' ? 'night' : 'day';
+  App.settings.theme = nextTheme;
+
+  if (document.body) {
+    document.body.dataset.theme = nextTheme;
+  }
+
+  updateThemeControls(nextTheme);
+  updateThemeMetaColor(nextTheme);
+}
+
+function updateThemeControls(theme) {
+  document.querySelectorAll('[data-theme-value]').forEach(btn => {
+    const active = btn.dataset.themeValue === theme;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+}
+
+function updateThemeMetaColor(theme) {
+  const metaTheme = document.getElementById('meta-theme-color');
+  if (!metaTheme) return;
+  metaTheme.setAttribute('content', theme === 'night' ? '#0b1220' : '#4f7ef8');
 }
 
 function getShareUrl() {
