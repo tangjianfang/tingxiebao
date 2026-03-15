@@ -341,9 +341,12 @@ function bindEvents() {
     window.open(getShareUrl(), '_blank', 'noopener,noreferrer');
   });
 
-  // ── 词库导航 ──
-  on('btn-wordbank', 'click', () => toggleSection('wordbank'));
-  on('btn-settings-ai', 'click', () => toggleSection('ai-settings'));
+  // ── 侧边栏标签切换 ──
+  document.querySelectorAll('.sidebar-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      switchSidebarTab(btn.dataset.sidebarTab);
+    });
+  });
 
   // ── 词库 Tab ──
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -795,6 +798,26 @@ function toggleSection(name) {
   if (!id) return;
   const el = document.getElementById(id);
   if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function switchSidebarTab(name) {
+  // name: 'wordbank' | 'settings'
+  const map = {
+    wordbank:  'wordbank-section',
+    settings:  'ai-settings-section',
+  };
+  document.querySelectorAll('.sidebar-tab').forEach(btn => {
+    const isActive = btn.dataset.sidebarTab === name;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  });
+  Object.entries(map).forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = key === name ? 'block' : 'none';
+  });
+  if (name === 'settings' && typeof renderBuiltinWordList === 'function') {
+    // nothing extra needed
+  }
 }
 
 // ════════════════════════════════════════════════════════

@@ -108,9 +108,81 @@ body[data-theme="night"] {
 
 /* ── 页面布局 ── */
 .app-container {
-  max-width: 1080px;
+  max-width: 1300px;
   margin: 0 auto;
   padding: 0 20px 44px;
+}
+
+.app-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 20px;
+  align-items: start;
+}
+
+.workspace-main,
+.workspace-sidebar {
+  min-width: 0;
+}
+
+.workspace-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── 右侧边栏：统一卡片式面板 ── */
+.sidebar-panel {
+  position: sticky;
+  top: 100px;
+  overflow: hidden;
+}
+
+.sidebar-tab-bar {
+  display: flex;
+  align-items: stretch;
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--border-soft);
+  padding: 10px 12px 0;
+  gap: 4px;
+}
+
+.sidebar-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 14px 14px 0 0;
+  background: transparent;
+  color: var(--text-soft);
+  font-family: var(--font-sans);
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s var(--ease), color .15s var(--ease);
+  white-space: nowrap;
+}
+
+.sidebar-tab:hover {
+  background: rgba(79,126,248,.07);
+  color: var(--text-secondary);
+}
+
+.sidebar-tab.active {
+  background: var(--surface-strong);
+  color: var(--primary-strong);
+  border: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--surface-strong);
+  margin-bottom: -1px;
+}
+
+.sidebar-body {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
 }
 
 /* ── 顶部导航栏 ── */
@@ -401,6 +473,10 @@ body[data-theme="night"] {
 
 /* ── 主功能面板 ── */
 .main-panel { margin-bottom: 16px; }
+
+.workspace-main .main-panel {
+  margin-bottom: 0;
+}
 
 .simple-mode-banner {
   background: linear-gradient(135deg, rgba(238,244,255,.94) 0%, rgba(255,255,255,.94) 100%);
@@ -902,8 +978,6 @@ input::placeholder {
 .status-icon { margin-left: auto; font-size: 1.1rem; }
 
 /* ── 题库管理 ── */
-#wordbank-section { display: none; }
-
 .wordbank-tabs {
   display: flex;
   gap: 4px;
@@ -1384,11 +1458,22 @@ button, a, select, input, label {
 /* ── xl: 平板横屏 (< 1024px) ── */
 @media (max-width: 1024px) {
   .app-container { max-width: 100%; padding: 0 24px 40px; }
+  .app-workspace {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 16px;
+  }
 }
 
 /* ── lg: 平板竖屏 (< 768px) ── */
 @media (max-width: 768px) {
   .app-container { padding: 0 16px 40px; }
+  .app-workspace { grid-template-columns: 1fr; }
+  .sidebar-panel {
+    position: static;
+  }
+  .sidebar-body {
+    max-height: none;
+  }
 
   .card-body { padding: 16px 18px 20px; }
   .card-header { padding: 16px 18px 0; }
@@ -1417,6 +1502,7 @@ button, a, select, input, label {
   html { font-size: 15px; }
 
   .app-container { padding: 0 12px 32px; }
+  .app-workspace { gap: 14px; }
 
   /* 导航栏紧凑化 */
   .app-header { padding: 12px 0; margin-bottom: 4px; }
