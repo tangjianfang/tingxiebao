@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="小学生听写宝 — 课堂老师朗读助手，支持自动循环朗读与节奏控制">
+  <meta name="theme-color" content="#4f7ef8">
+
+  <!-- PWA 支持 -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+
+  <title>听写宝 · 课堂朗读助手</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- ══════════════════════════════════════════════════
+       顶部导航
+       ══════════════════════════════════════════════════ -->
+  <header class="app-header">
+    <a class="logo" href="#">
+      <div class="logo-icon">📖</div>
+      <div>
+        <span class="logo-text">听写宝</span>
+        <span class="logo-sub">课堂朗读助手 · 触控友好版</span>
+      </div>
+    </a>
+
+    <div class="header-actions">
+      <button class="btn btn-ghost btn-sm" id="btn-wordbank" title="管理词库">
+        <span role="img" aria-label="词库">📚</span><span class="btn-label"> 词库</span>
+      </button>
+      <button class="btn btn-ghost btn-sm" id="btn-settings-ai" title="高级设置">
+        <span role="img" aria-label="设置">⚙️</span><span class="btn-label"> 高级</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- TTS 不支持提示 -->
+  <div id="tts-notice" style="display:none;margin-bottom:12px" class="card">
+    <div class="card-body" style="background:var(--warning-light);color:#7a4f00;border-radius:var(--radius-lg)">
+      ⚠️ 您的浏览器不支持语音朗读。推荐使用 <strong>Microsoft Edge</strong> 或 <strong>Google Chrome</strong> 以获得最佳体验。
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       配置区域（主界面）
+       ══════════════════════════════════════════════════ -->
+  <div id="config-section" class="main-section">
+
+    <!-- 快速配置卡 -->
+    <div class="card main-panel">
+      <div class="card-header">
+        <h2 class="card-title"><span class="icon">🎓</span> 听写配置</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="bank-total" style="font-size:.8rem;color:var(--gray-400)">内置词库...</span>
+          <span id="grade-word-count" style="font-size:.8rem;color:var(--gray-400)"></span>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <div class="simple-mode-banner">
+          <div class="simple-mode-title">🌟 已为您准备好课堂模式</div>
+          <div class="simple-mode-text" id="simple-preset-summary">
+            已默认设置为深圳小学语文 · 一年级下册字词，直接点“开始听写”即可。
+          </div>
+        </div>
+
+        <div class="quick-entry-card">
+          <label class="quick-entry-label" for="quick-word-input">快速录入本节课要朗读的字 / 词</label>
+          <textarea
+            id="quick-word-input"
+            class="quick-word-input"
+            rows="4"
+            placeholder="可直接输入要听写的字词，支持空格、逗号、换行分隔。\n留空则默认使用深圳一年级下册内置内容。"
+          ></textarea>
+          <div class="quick-entry-tip">输入后会自动保存，并优先用于本轮朗读；朗读过程中可按空格暂停 / 继续。</div>
+        </div>
+
+        <details class="advanced-settings">
+          <summary>轻点展开更多设置</summary>
+
+        <!-- 词源选择 -->
+        <div class="config-item" style="margin-bottom:18px">
+          <label>词语来源</label>
+          <div class="select-wrapper">
+            <select id="word-source">
+              <option value="grade">📚 默认课本词库</option>
+              <option value="custom">✏️ 自定义词语列表</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="config-grid">
+          <!-- 年级 -->
+          <div class="config-item">
+            <label>年级</label>
+            <div class="select-wrapper">
+              <select id="grade-select">
+                <option value="grade1" selected>一年级</option>
+                <option value="grade2">二年级</option>
+                <option value="grade3">三年级</option>
+                <option value="grade4">四年级</option>
+                <option value="grade5">五年级</option>
+                <option value="grade6">六年级</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 学期 -->
+          <div class="config-item">
+            <label>学期</label>
+            <div class="select-wrapper">
+              <select id="semester-select">
+                <option value="all">全册</option>
+                <option value="1">上册</option>
+                <option value="2" selected>下册</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 数量 -->
+          <div class="config-item">
+            <label>题目数量
+              <span class="help-badge" title="建议 8-15 题，符合一般课堂时间">?</span>
+            </label>
+            <input type="number" id="count-input" value="10" min="1" max="100" step="1">
+          </div>
+
+        </div>
+
+        <!-- 节奏设置 -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px">
+          <label class="touch-toggle">
+            <input type="checkbox" id="read-sentence" style="width:18px;height:18px;accent-color:var(--primary)">
+            <span>朗读例句（帮助学生理解词义）</span>
+          </label>
+          <label class="touch-toggle">
+            <input type="checkbox" id="show-word" style="width:18px;height:18px;accent-color:var(--primary)">
+            <span>显示当前正在朗读的字词（适合带读练习）</span>
+          </label>
+        </div>
+
+        </details>
+
+        <!-- 开始按钮（统一控制栏见下方） -->
+        <div style="margin-top:4px">
+          <button class="btn btn-primary btn-lg" id="btn-start" style="width:100%">
+            ▶ 开始听写
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /config-section -->
+
+
+  <!-- ══════════════════════════════════════════════════
+       听写控制台
+       ══════════════════════════════════════════════════ -->
+  <div id="dictation-console" class="main-section" style="display:none">
+
+    <!-- 舞台 -->
+    <div class="console-stage">
+      <div class="stage-counter" id="stage-counter">0 / 0</div>
+      <div class="stage-timer" id="stage-timer"></div>
+      <div class="stage-status" id="stage-status">准备中...</div>
+      <div class="stage-word hidden-word" id="stage-word">？</div>
+      <div class="stage-sentence" id="stage-sentence"></div>
+      <div class="rhythm-indicator">
+        <div class="rhythm-dot" title="报题号"></div>
+        <div class="rhythm-dot" title="朗读词语"></div>
+        <div class="rhythm-dot" title="例句"></div>
+        <div class="rhythm-dot" title="复读"></div>
+        <div class="rhythm-dot" title="等待下一题"></div>
+      </div>
+    </div>
+
+    <!-- 进度条 -->
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <!-- 节奏时间线（当前阶段） -->
+    <div class="timeline" style="margin-bottom:16px">
+      <div class="timeline-step" data-phase="number">报题号</div>
+      <div class="timeline-step" data-phase="word">词语</div>
+      <div class="timeline-step" data-phase="sentence">例句</div>
+      <div class="timeline-step" data-phase="repeat">复读</div>
+      <div class="timeline-step" data-phase="wait">等待</div>
+    </div>
+
+    <!-- 控制栏（使用全局统一控制栏，见 #global-control-bar） -->
+
+    <div class="card teacher-mode-card">
+      <div class="card-header">
+        <h3 class="card-title"><span class="icon">🏫</span> 课堂使用提示</h3>
+      </div>
+      <div class="card-body">
+        <div class="teacher-mode-list">
+          <p>• 学生可在线下纸张或作业本上完成听写，页面不再显示书写区。</p>
+          <p>• 老师只需准备字词内容并设置朗读节奏，系统会自动连续朗读。</p>
+          <p>• 朗读过程中可按 <strong>空格键</strong> 暂停 / 继续，操作更适合触摸屏课堂使用。</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dictation-console -->
+
+
+  <!-- ══════════════════════════════════════════════════
+       词库管理面板（折叠）
+       ══════════════════════════════════════════════════ -->
+  <div id="wordbank-section" class="card" style="display:none;margin-top:16px">
+    <div class="card-header">
+      <h3 class="card-title"><span class="icon">📚</span> 词库管理</h3>
+    </div>
+    <div class="card-body">
+      <div class="wordbank-tabs">
+        <button class="tab-btn active" data-tab="custom">✏️ 自定义词语</button>
+        <button class="tab-btn" data-tab="builtin">📖 内置词库</button>
+      </div>
+
+      <!-- 自定义词语 Tab -->
+      <div id="tab-custom" class="tab-panel">
+        <div class="custom-word-input">
+          <input
+            type="text"
+            id="custom-word-input-field"
+            placeholder="输入词语（回车或逗号添加，支持批量粘贴）"
+            autocomplete="off"
+          >
+          <button class="btn btn-primary" id="btn-add-word">添加</button>
+        </div>
+        <div class="word-tag-list" id="word-tag-list">
+          <span style="color:var(--gray-400);font-size:.85rem">还没有词语，请添加...</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" id="btn-import-words">📂 批量导入</button>
+          <button class="btn btn-primary btn-sm" id="btn-use-custom">✅ 使用此列表听写</button>
+          <button class="btn btn-ghost btn-sm" id="btn-clear-custom">🗑️ 清空</button>
+        </div>
+      </div>
+
+      <!-- 内置词库 Tab -->
+      <div id="tab-builtin" class="tab-panel" style="display:none">
+        <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:10px">
+          点击词语可加入自定义列表。当前显示：已选年级词汇。
+        </p>
+        <div class="grade-word-list" id="builtin-word-list">
+          <!-- 动态渲染 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════
+       系统设置面板（折叠）
+       ══════════════════════════════════════════════════ -->
+  <div id="ai-settings-section" class="card" style="display:none;margin-top:16px">
+    <div class="card-header">
+      <h3 class="card-title"><span class="icon">⚙️</span> 系统设置</h3>
+    </div>
+    <div class="card-body">
+
+      <div class="advanced-panel-block">
+        <h4 style="font-size:.9rem;font-weight:600;color:var(--gray-700);margin-bottom:12px">🔊 语音与朗读</h4>
+
+        <div class="speed-control" style="margin-bottom:20px">
+          <label>朗读语速</label>
+          <input type="range" id="speed-range" min="0.5" max="1.3" step="0.05" value="0.75">
+          <span class="speed-value">0.75</span>
+        </div>
+
+        <div class="config-item" style="margin-bottom:16px">
+          <label>朗读声音
+            <span class="help-badge" title="推荐使用 Edge 浏览器，可获得最自然的普通话音色">?</span>
+          </label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div class="select-wrapper" style="flex:1;min-width:240px">
+              <select id="voice-select">
+                <option value="">（自动选择最佳中文声音）</option>
+              </select>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="btn-test-tts">🔊 试听</button>
+          </div>
+        </div>
+
+        <div class="tts-indicator" style="margin-bottom:8px">
+          <div class="tts-wave paused">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <span id="tts-label">语音引擎就绪</span>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--gray-200);margin:20px 0">
+
+      <h4 style="font-size:.9rem;font-weight:600;color:var(--gray-700);margin-bottom:12px">⌨️ 听写节奏精调</h4>
+      <div class="config-grid" style="margin-bottom:12px">
+        <div class="config-item">
+          <label>内部循环次数</label>
+          <input type="number" id="intra-repeat-count-input" min="1" max="10" step="1" value="3">
+        </div>
+        <div class="config-item">
+          <label>内部间隔（秒）</label>
+          <input type="number" id="intra-repeat-gap-input" min="1" max="15" step="1" value="3">
+        </div>
+        <div class="config-item">
+          <label>词语间隔（秒）</label>
+          <input type="number" id="word-interval-input" min="5" max="60" step="1" value="20">
+        </div>
+      </div>
+      <div style="font-size:.85rem;color:var(--gray-500);line-height:1.8">
+        <p>当前节奏：<strong>报题号 → 朗读词语 → 内部循环朗读 → 词间等待</strong></p>
+        <p>例如输入“党员”，可设置为：党员 → 3 秒 → 党员 → 3 秒 → 党员。</p>
+        <p>“内部循环次数”表示每个词总共朗读几遍；“内部间隔”表示同一个词两次朗读之间的停顿。</p>
+        <p>“词语间隔”是当前词全部朗读结束后，到下一个词开始前的外部间隔，默认 20 秒。</p>
+        <p>可通过"朗读语速"滑块同步调整所有朗读速度</p>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--gray-200);margin:20px 0">
+
+      <h4 style="font-size:.9rem;font-weight:600;color:var(--gray-700);margin-bottom:12px">📊 数据管理</h4>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="clearCustomWords()">🗑️ 清空自定义词语</button>
+        <button class="btn btn-ghost btn-sm" onclick="if(confirm('确定清除本地保存的设置和词语吗？'))resetAllData()">
+          ♻️ 重置本地设置
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="exportData()">📤 导出当前配置</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <footer style="text-align:center;padding:32px 0 8px;color:var(--gray-400);font-size:.8rem;line-height:2">
+    <p>听写宝 · 专业小学语文听写系统</p>
+    <p>基于 Web Speech API · 人教版词库 · 纯前端部署</p>
+    <p>
+      <a href="https://github.com" style="color:var(--gray-400)">GitHub</a>
+      ·
+      <a href="#" onclick="showSection('config');return false" style="color:var(--gray-400)">返回首页</a>
+    </p>
+  </footer>
+
+</div><!-- /app-container -->
+
+<!-- ══ 全局持久控制栏 ══ -->
+<div id="global-control-bar" style="
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--gray-200);
+  padding: 12px 16px;
+  display: none;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  box-shadow: 0 -4px 20px rgba(0,0,0,.08);
+">
+  <button class="btn btn-ghost" id="btn-pause" style="display:none">⏸ 暂停</button>
+  <button class="btn btn-success" id="btn-resume" style="display:none">▶ 继续</button>
+  <button class="btn btn-danger btn-ghost btn-sm" id="btn-stop" style="display:none">⏹ 停止</button>
+</div>
+<!-- Toast 容器 -->
+<div class="toast-container" id="toast-container"></div>
+
+
+<!-- ════════════════════════════════════════════════════
+     脚本加载（顺序重要）
+     ════════════════════════════════════════════════════ -->
+<script src="js/word-bank.js"></script>
+<script src="js/tts-engine.js"></script>
+<script src="js/dictation-rhythm.js"></script>
+<script src="js/app.js"></script>
+
+<!-- 内联脚本：导出功能 & API Key 预填 -->
+<script>
+function exportData() {
+  const payload = {
+    settings: JSON.parse(localStorage.getItem('tingxie_settings') || '{}'),
+    customWords: JSON.parse(localStorage.getItem('tingxie_custom_words') || '[]'),
+    exportTime: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `tingxie-data-${new Date().toLocaleDateString('zh-CN').replace(/\//g, '')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+});
+</script>
+
+</body>
+</html>
