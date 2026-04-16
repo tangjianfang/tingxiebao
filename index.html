@@ -159,9 +159,12 @@
         </details>
 
         <!-- 开始按钮（统一控制栏见下方） -->
-        <div style="margin-top:4px">
-          <button class="btn btn-primary btn-lg" id="btn-start" style="width:100%">
+        <div style="margin-top:4px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-lg" id="btn-start" style="flex:1;min-width:200px">
             ▶ 开始听写
+          </button>
+          <button class="btn btn-outline btn-lg" id="btn-print" title="生成并打印A4答题纸" style="min-width:130px">
+            🖨️ 打印答题纸
           </button>
         </div>
 
@@ -409,6 +412,47 @@
     <div class="qr-modal-actions" style="margin-top:16px">
       <button class="btn btn-primary" id="btn-confirm-import">✅ 确认导入</button>
       <button class="btn btn-ghost" id="btn-cancel-import">取消</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- 打印答题纸（打印时显示，屏幕隐藏） -->
+<div id="print-sheet" style="display:none" aria-hidden="true"></div>
+
+<!-- 打印预览弹层 -->
+<div class="qr-modal" id="print-modal" style="display:none" aria-hidden="true">
+  <div class="qr-modal-backdrop" id="print-modal-backdrop"></div>
+  <div class="qr-modal-dialog print-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="print-modal-title">
+    <button class="qr-modal-close" id="btn-close-print" aria-label="关闭打印预览">✕</button>
+    <div class="qr-modal-title" id="print-modal-title">🖨️ 打印答题纸</div>
+    <div class="qr-modal-subtitle" id="print-modal-subtitle">已为您生成 A4 格式答题纸，请点击下方按钮打印。</div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 8px">
+      <div style="flex:1;min-width:160px">
+        <label style="font-size:.82rem;color:var(--text-secondary);display:block;margin-bottom:4px">学校名称（可选）</label>
+        <input type="text" id="print-school" placeholder="如：深圳市XX小学" style="width:100%;padding:8px 12px;border:1px solid var(--input-border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:.9rem">
+      </div>
+      <div style="flex:1;min-width:100px">
+        <label style="font-size:.82rem;color:var(--text-secondary);display:block;margin-bottom:4px">列数</label>
+        <select id="print-cols" style="width:100%;padding:8px 12px;border:1px solid var(--input-border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:.9rem">
+          <option value="1">1 列</option>
+          <option value="2" selected>2 列</option>
+          <option value="3">3 列</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:130px">
+        <label style="font-size:.82rem;color:var(--text-secondary);display:block;margin-bottom:4px">是否显示答案</label>
+        <select id="print-show-answer" style="width:100%;padding:8px 12px;border:1px solid var(--input-border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:.9rem">
+          <option value="no" selected>不显示（学生卷）</option>
+          <option value="yes">显示答案（教师卷）</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="qr-modal-actions" style="margin-top:16px">
+      <button class="btn btn-primary" id="btn-confirm-print">🖨️ 立即打印</button>
+      <button class="btn btn-ghost" id="btn-cancel-print">取消</button>
     </div>
   </div>
 </div>

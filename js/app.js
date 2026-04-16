@@ -338,6 +338,12 @@ function bindEvents() {
     });
   });
 
+  on('btn-print', 'click', openPrintModal);
+  on('btn-close-print', 'click', closePrintModal);
+  on('print-modal-backdrop', 'click', closePrintModal);
+  on('btn-confirm-print', 'click', confirmPrint);
+  on('btn-cancel-print', 'click', closePrintModal);
+
   // ── 主控按钮 ──
   on('btn-start', 'click', handleStart);
   on('btn-pause', 'click', handlePause);
@@ -1031,6 +1037,147 @@ function resetAllData() {
   showSection('config');
   updateControlBar();
   showToast('已恢复默认设置', 'success');
+}
+
+// ════════════════════════════════════════════════════════
+// 打印答题纸
+// ════════════════════════════════════════════════════════
+function openPrintModal() {
+  syncCustomWordsFromQuickInput();
+
+  // 准备词语列表（与听写相同逻辑）
+  let words = [];
+  if (App.customWords.length > 0 && App.settings.wordSource === 'custom') {
+    words = App.customWords.slice(0, App.settings.wordCount);
+  } else {
+    words = getGradeWords(App.settings.grade, App.settings.semester, App.settings.wordCount, false);
+  }
+
+  if (!words.length) {
+    showToast('没有可打印的词语，请先选择词库或输入自定义词语。', 'error');
+    return;
+  }
+
+  const gradeLabel = WORD_BANK[App.settings.grade]?.label || '一年级';
+  const semesterLabel = App.settings.semester === '1' ? '上册'
+    : App.settings.semester === '2' ? '下册' : '全册';
+  const subtitle = `共 ${words.length} 题 · ${gradeLabel}${semesterLabel}`;
+
+  const modal = document.getElementById('print-modal');
+  const subtitleEl = document.getElementById('print-modal-subtitle');
+  if (subtitleEl) subtitleEl.textContent = `已为您生成 ${subtitle} A4 答题纸，可设置后打印。`;
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.removeAttribute('aria-hidden');
+  }
+}
+
+function closePrintModal() {
+  const modal = document.getElementById('print-modal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+  }
+}
+
+function confirmPrint() {
+  closePrintModal();
+
+  syncCustomWordsFromQuickInput();
+
+  let words = [];
+  if (App.customWords.length > 0 && App.settings.wordSource === 'custom') {
+    words = App.customWords.slice(0, App.settings.wordCount);
+  } else {
+    words = getGradeWords(App.settings.grade, App.settings.semester, App.settings.wordCount, false);
+  }
+
+  if (!words.length) {
+    showToast('没有可打印的词语。', 'error');
+    return;
+  }
+
+  const school = (document.getElementById('print-school')?.value || '').trim();
+  const cols = parseInt(document.getElementById('print-cols')?.value || '2', 10);
+  const showAnswer = document.getElementById('print-show-answer')?.value === 'yes';
+
+  generatePrintSheet(words, { school, cols, showAnswer });
+  setTimeout(() => window.print(), 200);
+}
+
+function generatePrintSheet(words, options = {}) {
+  const { school = '', cols = 2, showAnswer = false } = options;
+
+  const gradeLabel = WORD_BANK[App.settings.grade]?.label || '一年级';
+  const semesterLabel = App.settings.semester === '1' ? '上册'
+    : App.settings.semester === '2' ? '下册' : '全册';
+
+  const today = new Date();
+  const dateStr = `${today.getFullYear()} 年 ${today.getMonth() + 1} 月 ${today.getDate()} 日`;
+  const sheetType = showAnswer ? '（教师版）' : '（学生版）';
+
+  // 生成答题格子 HTML
+  const itemsHtml = words.map((item, i) => {
+    const answerHtml = showAnswer
+      ? `<span class="print-answer-text">${escHtml(item.word)}</span>`
+      : '';
+    return `<div class="print-answer-item">
+      <span class="print-answer-num">${i + 1}.</span>
+      <span class="print-answer-line">${answerHtml}</span>
+    </div>`;
+  }).join('');
+
+  // 生成答案表（教师版在底部）
+  const answerKeyHtml = showAnswer ? `
+    <div class="print-answer-key">
+      <div class="print-answer-key-title">参考答案</div>
+      <div class="print-answer-key-grid">
+        ${words.map((item, i) => `
+          <div class="print-answer-key-item">
+            <span class="print-key-num">${i + 1}.</span>
+            <span class="print-key-word">${escHtml(item.word)}</span>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
+  const schoolLine = school ? `<div class="print-subtitle">${escHtml(school)}</div>` : '';
+
+  const html = `
+    <div class="print-header">
+      ${schoolLine}
+      <div class="print-title">语文听写测试卷 ${escHtml(sheetType)}</div>
+      <div class="print-subtitle">${escHtml(gradeLabel)}${escHtml(semesterLabel)} · 共 ${words.length} 题</div>
+      <div class="print-info-row">
+        <div class="print-info-item">
+          <span class="print-info-label">班级：</span>
+          <span class="print-info-line"></span>
+        </div>
+        <div class="print-info-item">
+          <span class="print-info-label">姓名：</span>
+          <span class="print-info-line"></span>
+        </div>
+        <div class="print-info-item">
+          <span class="print-info-label">日期：</span>
+          <span class="print-info-line" style="min-width:60pt">${showAnswer ? escHtml(dateStr) : ''}</span>
+        </div>
+        <div class="print-info-item">
+          <span class="print-info-label">得分：</span>
+          <span class="print-info-line"></span>
+        </div>
+      </div>
+    </div>
+    <div class="print-answer-grid cols-${cols}">
+      ${itemsHtml}
+    </div>
+    ${answerKeyHtml}
+    <div class="print-footer">
+      深圳市小学语文听写测试 · 听写宝自动生成 · ${escHtml(dateStr)}
+    </div>`;
+
+  const printSheet = document.getElementById('print-sheet');
+  if (printSheet) {
+    printSheet.innerHTML = html;
+  }
 }
 
 function escHtml(str) {
