@@ -2,7 +2,7 @@
 
 > 一套真正专业、可直接部署的小学语文听写辅助工具
 
-**在线演示：** `https://<你的用户名>.github.io/tingxiebao/`
+**在线演示：** [https://tangjianfang.github.io/tingxiebao/](https://tangjianfang.github.io/tingxiebao/)
 
 ---
 
@@ -65,7 +65,7 @@
 
 ```bash
 # 1. Fork 或克隆本仓库
-git clone https://github.com/<你的用户名>/tingxiebao.git
+git clone https://github.com/tangjianfang/tingxiebao.git
 cd tingxiebao
 
 # 2. 推送到 GitHub
@@ -76,7 +76,7 @@ git push origin main
 # 3. 开启 GitHub Pages
 # 进入仓库 → Settings → Pages → Source: main 分支 → / (root)
 # 等待 1-2 分钟后，访问：
-# https://<你的用户名>.github.io/tingxiebao/
+# https://tangjianfang.github.io/tingxiebao/
 ```
 
 ### 方法二：直接上传文件
